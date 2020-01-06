@@ -27,11 +27,11 @@ class GraphNet(nn.Module):
                                               nn.ReLU(), 
                                               nn.Linear(64, 1),
                                               nn.Tanh())
-            self.register_buffer('adjacency_matrix', adjacency_matrix)
+            self.register_buffer('adjacency_matrix', adjacency_matrix) # not to be considered a model paramater that is updated during training
         else:
             # Use a pre-computed adjacency matrix
             A = self.precompute_adjacency_images(image_size)
-            self.register_buffer('A', A)
+            self.register_buffer('A', A) # not to be considered a model paramater that is updated during training
 
     def forward(self, x):
         '''
@@ -46,6 +46,7 @@ class GraphNet(nn.Module):
         return self.fc(avg_neighbor_features)
 
     @staticmethod
+    # Static method knows nothing about the class and just deals with the parameters.
     def precompute_adjacency_images(image_size):
         print('precompute_adjacency_images')
         col, row = np.meshgrid(np.arange(image_size), np.arange(image_size)) # (28 x 28) Explanation: https://www.geeksforgeeks.org/numpy-meshgrid-function/
