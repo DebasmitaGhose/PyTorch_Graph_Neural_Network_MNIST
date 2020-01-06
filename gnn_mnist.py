@@ -55,7 +55,7 @@ def train(args, model, device, train_loader, optimizer, epoch):
 		loss = F.cross_entopy(output, target)
 		loss.backward()
 		optimizer.step()
-		if batch_idx % args.log_interval == 0:
+		if batch_idx % 10 == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
@@ -76,3 +76,56 @@ def test(args, model, device, test_loader):
         '\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
             test_loss, correct, len(test_loader.dataset),
             100. * correct / len(test_loader.dataset)))
+
+def main():
+	parser = argparse.ArgumentParser(description = 'GNN PyTorch Example on MNIST')
+	parser.add_argument('--batch_size', type=int, default=64,
+		                help='input batch size')
+	parser.add_argument('--epochs', type=int, default=10,
+		                help='number of epochs to train')
+	parser.add_argument('--lr', type=float, default=1e-3,
+		                help='learning rate')
+	parser.add_argument('--pred_edge', action='store_true', default=True, 
+		                help='predict edges instead of using predefined ones')
+	parser.add_argument('--seed', type=int, default=1, 
+		                help='random seed')
+	args = parser.parse_args()
+
+	use_cuda = True
+
+	torch.manual_seed(args.seed)
+
+	device = torch.device("cuda" if use_cuda else "cpu")
+
+    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    train_loader = torch.utils.data.DataLoader(
+        datasets.MNIST('../data', train=True, download=True,
+                       transform=transforms.Compose([
+                           transforms.ToTensor(),
+                           transforms.Normalize((0.1307,), (0.3081,))
+                       ])),
+        batch_size=args.batch_size, shuffle=True, **kwargs)
+    test_loader = torch.utils.data.DataLoader(
+        datasets.MNIST('../data', train=False, transform=transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))
+        ])),
+        batch_size=args.batch_size, shuffle=False, **kwargs)	
+	
+	model = GraphNet()
+	model.to(device)
+
+    optimizer = optim.SGD(model.parameters(), lr = args.lr, weight_decay = 1e-4)
+
+    print('number of trainable parameters: %d' %
+          np.sum([np.prod(p.size()) if p.requires_grad else 0 for p in model.parameters()]))
+
+    for epoch in range(1, args.epochs + 1):
+        train(args, model, device, train_loader, optimizer, epoch)
+        test(args, model, device, test_loader)
+
+if __name__ == '__main__':
+	main()
+	
+
+
