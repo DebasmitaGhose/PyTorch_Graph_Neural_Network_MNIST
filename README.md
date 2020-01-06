@@ -9,13 +9,16 @@ Example code to train a Graph Neural Network on the MNIST dataset in PyTorch for
 
 ## Running the Code
 
-To use precomputed adjacency matrix
+To use precomputed adjacency matrix:
+
 `python gnn_mnist.py`
 
-To use a learned edge map
+To use a learned edge map:
+
 `python gnn_mnist.py --pred_edge`
 
 Other optional hyperparameters:
+
 `python gnn_mnist.py --pred_edge --batch_size 64 --epochs 10 --lr 1e-4 --seed 10`
 
 
